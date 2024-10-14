@@ -50,9 +50,11 @@ b1 -= learning_rate * db1
 W2 -= learning_rate * dW2
 b2 -= learning_rate * db2
 
+#分支
 # 更新后的参数
 print("更新后的权重和偏置：")
 print("W1:", W1)
 print("b1:", b1)
 print("W2:", W2)
 print("b2:", b2)
+#master
