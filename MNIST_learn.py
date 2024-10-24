@@ -7,6 +7,8 @@ from torchvision import datasets,transforms
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
 
 epochs=10
 steps=0
@@ -45,7 +47,7 @@ class SimpleNN(nn.Module):
         self.log_softmax=nn.LogSoftmax(dim=1)
 
     def forward(self,x):
-        x=x.view(x.shape[0],-1)
+        x=x.view(x.size(0),-1)
         x=self.fc1(x)
         x=self.relu(x)
         x=self.fc2(x)
@@ -83,3 +85,40 @@ plt.ylabel('loss')
 plt.title('training loss over epoch')
 plt.legend()
 plt.show()
+
+def evaluate(model,testloader):
+    total=0
+    correct=0
+    with torch.no_grad():
+        for images,labels in testloader:
+            log_ps=model(images)
+            ps=torch.exp(log_ps)
+            _,predicted=torch.max(ps,1)
+            total+=labels.size(0)
+            correct+=(predicted==labels).sum().item()
+    accuracy=100*correct/total
+    return accuracy
+
+accuracy=evaluate(model,testloader)
+print(f'accuracy:{accuracy:.2f}%')
+
+def plot_confusion_matrix(model,testloader):
+    all_pred=[]
+    all_label=[]
+    with torch.no_grad():
+        for images,labels in testloader:
+            log_ps=model(images)
+            ps=torch.exp(log_ps)
+            _,pred=torch.max(ps,1)
+            all_pred.extend(pred.cpu().numpy())
+            all_label.extend(labels.cpu().numpy())
+
+    cm=confusion_matrix(all_label,all_pred)
+    plt.figure(figsize=(10,8))
+    sns.heatmap(cm,annot=True,fmt='d',cmap='Blues')
+    plt.xlabel('predicted')
+    plt.ylabel('true')
+    plt.title('confusion_matrix')
+    plt.show()
+
+plot_confusion_matrix(model,testloader)
